@@ -1,7 +1,7 @@
 Dependent Dirichlet processes factor model for nonparametric ordination in Microbiome data (DirFactor)
 ================
 Boyu Ren
-2016-12-04
+2016-12-05
 
 -   [Introduction](#introduction)
 -   [How To Run](#how-to-run)
@@ -86,7 +86,8 @@ compare_correlation = function( filename ){
   cat( "Done readin\n" )
   corr.est = get_corr( lapply( all.res, function(x) x$res ) )
   cat( "Done corr est\n" )
-  corr.tru = lapply( lapply( all.res, function(x) x$truth ), function(x) cov2cor( t(x$Y.tru)%*%x$Y.tru + diag( rep( x$er, ncol(x$Y.tru) ) ) ) )
+  corr.tru = lapply( lapply( all.res, function(x) x$truth ), 
+                     function(x) cov2cor( t(x$Y.tru)%*%x$Y.tru + diag( rep( x$er, ncol(x$Y.tru) ) ) ) )
   
   sapply( 1:length(corr.est), function(x){
     sapply( corr.est[[x]], function( mt ) rv.coef( mt, corr.tru[[x]] ) )
@@ -111,25 +112,33 @@ corr.mt.est.9.mis = compare_correlation( "factor_9_mis" )
 
 #boxplots to summarize all the RV coeffients
 plot.corr.est = data.frame( rv = ( c( t(corr.mt.est.3), t(corr.mt.est.6), t(corr.mt.est.9) ) ),
-                            total = as.factor( rep( rep( c(1000,10000,100000), each = ncol( corr.mt.est.3 ) ), 3 ) ),
+                            total = as.factor( rep( rep( c(1000,10000,100000), 
+                                                         each = ncol( corr.mt.est.3 ) ), 3 ) ),
                             tru.factor = as.factor( rep( c(3,6,9), each = 3*ncol( corr.mt.est.3 ) ) ),
                             group = as.factor( rep( 1:9, each = ncol( corr.mt.est.3 ) ) ) )
 
-plot.corr.est.mis = data.frame( rv = ( c( t(corr.mt.est.3.mis), t(corr.mt.est.6.mis), t(corr.mt.est.9.mis) ) ),
-                                total = as.factor( rep( rep( c(1000,10000,100000), each = ncol( corr.mt.est.3 ) ), 3 ) ),
-                                tru.factor = as.factor( rep( c(3,6,9), each = 3*ncol( corr.mt.est.3 ) ) ),
+plot.corr.est.mis = data.frame( rv = ( c( t(corr.mt.est.3.mis), t(corr.mt.est.6.mis), 
+                                          t(corr.mt.est.9.mis) ) ),
+                                total = as.factor( rep( rep( c(1000,10000,100000), 
+                                                             each = ncol( corr.mt.est.3 ) ), 3 ) ),
+                                tru.factor = as.factor( rep( c(3,6,9), 
+                                                             each = 3*ncol( corr.mt.est.3 ) ) ),
                                 group = as.factor( rep( 1:9, each = ncol( corr.mt.est.3 ) ) ) )
 
 # plot the boxplots
-ggplot( data = plot.corr.est, aes( x = total, y = rv, group = group, dodge = tru.factor, fill = tru.factor ), guide = F ) + 
-  geom_boxplot() + xlab("Total counts") + ylab("Estimate accuracy") + scale_y_continuous(limits=c(0.5, 1)) + theme_bw() +
+ggplot( data = plot.corr.est, aes( x = total, y = rv, group = group, 
+                                   dodge = tru.factor, fill = tru.factor ), guide = F ) + 
+  geom_boxplot() + xlab("Total counts") + ylab("Estimate accuracy") + 
+  scale_y_continuous(limits=c(0.5, 1)) + theme_bw() +
   theme( axis.text = element_text( size = 15 ), axis.title = element_text( size = 18 ),
          legend.title = element_text( size = 15 ), legend.text = element_text( size = 15 ),
          plot.title = element_text( size = 18, face = "bold") ) +
   labs( fill = "No. factors") + ggtitle( "Correctly specified model" )
 
-ggplot( data = plot.corr.est.mis, aes( x = total, y = rv, group = group, dodge = tru.factor, fill = tru.factor ) ) + 
-  geom_boxplot() + xlab("Total counts") + ylab("Estimate accuracy") + scale_y_continuous(limits=c(0.5, 1)) + theme_bw() +
+ggplot( data = plot.corr.est.mis, aes( x = total, y = rv, group = group, 
+                                       dodge = tru.factor, fill = tru.factor ) ) + 
+  geom_boxplot() + xlab("Total counts") + ylab("Estimate accuracy") + 
+  scale_y_continuous(limits=c(0.5, 1)) + theme_bw() +
   theme( axis.text = element_text( size = 15 ), axis.title = element_text( size = 18 ),
          legend.title = element_text( size = 15 ), legend.text = element_text( size = 15 ),
          plot.title = element_text( size = 18, face = "bold")) +
@@ -229,11 +238,12 @@ plot.data = data.frame( read.depth = rep( read.depth,length(all.gains) ),
                         Q.power = rep( rep( as.factor(c(2,1,0.5,3)), each = length(read.depth) ), 3 ) )
 
 ggplot( data = plot.data, aes(x=read.depth, y=gain, color=similarity, shape = Q.power) ) + 
-  geom_line() + geom_point(size=5) + theme_bw() +
-  xlab("Read depth") + ylab("Gain in estimate accuracy" ) + scale_shape_manual( values = c(15:17,4)) +
+  geom_line() + geom_point(size=5) + theme_bw() + xlab("Read depth") + 
+  ylab("Gain in estimate accuracy" ) + scale_shape_manual( values = c(15:17,4)) + 
   scale_x_continuous( breaks = read.depth ) + 
   theme( axis.title = element_text( size = 18 ), axis.text= element_text( size = 15 ),
-         legend.title = element_text( size = 15, face = "bold" ), plot.title = element_text( size = 15, face = "bold") )
+         legend.title = element_text( size = 15, face = "bold" ), 
+         plot.title = element_text( size = 15, face = "bold") )
 ```
 
 ![Figure3.pdf](Figure3.png)
@@ -253,7 +263,6 @@ all.corr.use = all.corr[sample(1:length(all.corr),size = 1000, replace = F)]
   
 statis.res = PlotStatis( all.corr.use, n.dim = 2, types = rep( c(1:2), each = 11 ) )
 statis.res[[1]]
-}
 ```
 
 ![Figure4.pdf](Figure4.png)
@@ -278,80 +287,35 @@ gp.metadata = sample_data( GlobalPatterns )
 data = otu_table( gp.genus )
 
 gp.mcmc = DirFactor( data, hyper, step = 50000, thinning=10 )
-
 gp.all.res = lapply( list.files( gp.mcmc$save.path, pattern = "res_", full.names = T ),
                   readRDS )
 
 #get bray-curtis distance matrix
-all.bc = lapply( gp.all.res, function(x){
+all.bc.gp = lapply( gp.all.res, function(x){
   weights = x$Q^2*(x$Q>0)*x$sigma
   w.norm = t(weights)/colSums(weights)
   vegdist( w.norm, method = "bray" )
 })
 
-use.idx = sample( 1:length(all.res), 1000, replace = F )
+use.idx = sample( 1:length(gp.all.res), 1000, replace = F )
 
 #distatis
-sub.bc.ls = lapply( all.bc[use.idx], as.matrix )
-plot.bc = PlotStatis( sub.bc.ls, n.dim = 3, labels = gp.metadata$SampleType,
+sub.bc.ls.gp = lapply( all.bc.gp[use.idx], as.matrix )
+plot.bc.gp = PlotStatis( sub.bc.ls.gp, n.dim = 3, labels = gp.metadata$SampleType,
                       types = gp.metadata$SampleType  )
-plot.bc[[1]]
-plot.bc[[2]]
-plot.bc[[3]]
+plot.bc.gp[[1]]
+plot.bc.gp[[2]]
+plot.bc.gp[[3]]
 
 #clustering plot
-clustering_posterior = function( all.dist ){
-  res.cluster = lapply( all.dist, function(x){
-    x = as.matrix(x)
-    cluster = pamk( x, krange = seq(2,ncol(x)-1), diss = T )
-    cluster.id = cluster$pamobject$clustering
-    outer( cluster.id, cluster.id, "==" )
-  })
-  res.cluster.mt = array( unlist( res.cluster ), dim = c( dim( res.cluster[[1]] ), length( res.cluster ) ) )
-  apply( res.cluster.mt, 1:2, mean )
-}
-
-#clustering using bc
-bc.clustering = clustering_posterior( all.bc )
-
-#plot the clustering scheme
-clustering_plot = function( res.mt, labels ){
-  require( reshape2 )
-  require( stringr )
-  
-  res.mt.order = res.mt[order( labels ),order( labels )]
-  plot.res = melt( res.mt.order )
-  axis.labels = levels( labels )
-  axis.pos = cumsum( table( labels ) ) + 0.5
-  axis.text.pos = as.vector( axis.pos - table( labels )/2 )
-  x.delim = data.frame( x = axis.pos, xend = axis.pos, yend = rep( 0.5, length(axis.pos) ), y = rep( 0, length(axis.pos) ) )
-  y.delim = data.frame( y = axis.pos, yend = axis.pos, xend = rep( 0.5, length(axis.pos) ), x = rep( 0, length(axis.pos) ) )
-  
-  ggplot() + geom_tile( data = plot.res, aes( x=Var1, y=Var2, fill = value ), color = "black" ) + 
-    scale_fill_gradient( low = "white", high = "red" ) + guides(fill=guide_legend(title="Posterior\nprobability")) +
-    annotate( geom="text", x = axis.text.pos, y = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
-    annotate( geom="text", y = axis.text.pos, x = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
-    theme_bw() + coord_fixed() + 
-    theme( axis.text = element_blank( ),
-           axis.title = element_blank(),
-           axis.ticks = element_blank(),
-           panel.border = element_blank(),
-           panel.grid.major = element_blank(),
-           panel.grid.minor = element_blank(),
-           legend.title = element_text(size = 18,face = "bold"),
-           legend.text = element_text(size = 15) ) + 
-    geom_segment( data = x.delim, aes(x = x, xend = xend, y = y, yend = yend ) ) + 
-    geom_segment( data = y.delim, aes(x = x, xend = xend, y = y, yend = yend ) )
-}
-
-clustering_plot( bc.clustering, gp.metadata$SampleType )
+PlotClustering( all.bc.gp, gp.metadata$SampleType )
 ```
 
 ![Figure5.pdf](Figure5.png)
 
 ### Ravel's vaginal microbiome dataset
 
-We also consider a vaginal dataset (Romero et al. 2014) which contains a larger number of biological samples (900) and a simpler bacterial community structure. These biological samples are derived from 54 healthy women. Multiple biological samples are taken from each individual, ranging from one to 32 biological samples per individual. Each woman has been classified, before our microbiome sequencing data were generated, into vaginal community state subtypes (CST). This dataset contains only species level taxonomic information and we filtered OTUs by occurrence. We only retain species with more than 5 reads in at least 10% of biological samples. This filtering resulted in 31 distinct OTUs. We ran one MCMC chain with 50,000 iterations.
+We also consider a vaginal dataset (Ravel et al. 2011) which contains a larger number of biological samples (900) and a simpler bacterial community structure. These biological samples are derived from 54 healthy women. Multiple biological samples are taken from each individual, ranging from one to 32 biological samples per individual. Each woman has been classified, before our microbiome sequencing data were generated, into vaginal community state subtypes (CST). This dataset contains only species level taxonomic information and we filtered OTUs by occurrence. We only retain species with more than 5 reads in at least 10% of biological samples. This filtering resulted in 31 distinct OTUs. We ran one MCMC chain with 50,000 iterations.
 
 We performed the same analyses as in the previous subsection and will load the MCMC results directly. The code for generating the figures are listed below:
 
@@ -380,8 +344,7 @@ plot.bc[[2]]
 plot.bc[[3]]
 
 #clustering using bc
-bc.clustering.ravel = clustering_posterior( all.bc.ravel )
-clustering_plot( bc.clustering.ravel, ravel.metadata$SampleType )
+PlotClustering( all.bc.ravel, ravel.metadata$SampleType )
 ```
 
 ![](Figure6.jpg)
@@ -391,6 +354,6 @@ References
 
 Caporaso, J. G., C. L. Lauber, W. A. Walters, D. Berg-Lyons, C. A. Lozupone, P. J. Turnbaugh, N. Fierer, and R. Knight. 2011. “Global Patterns of 16S RRNA Diversity at a Depth of Millions of Sequences Per Sample.” *Proceedings of the National Academy of Sciences* 108 (Supplement 1). National Acad Sciences: 4516–22.
 
-Ren, Boyu, Sergio Bacallado, Stefano Favaro, Susan Holmes, and Lorenzo Trippa. 2016. “Bayesian Nonparametric Ordination for the Analysis of Microbial Communities.” *ArXiv Preprint ArXiv:1601.05156*.
+Ravel, J., P. Gajer, Z. Abdo, G. M. Schneider, Sara S. K. K., S. L. McCulle, S. Karlebach, et al. 2011. “Vaginal Microbiome of Reproductive-Age Women.” *Proceedings of the National Academy of Sciences* 108 (Supplement 1). National Acad Sciences: 4680–7.
 
-Romero, R., S. S. Hassan, P. Gajer, A. L. Tarca, D. W. Fadrosh, J. Bieda, P. Chaemsaithong, J. Miranda, T. Chaiworapongsa, and J. Ravel. 2014. “The vaginal microbiota of pregnant women who subsequently have spontaneous preterm labor and delivery and those with a normal delivery at term.” *Microbiome* 2: 18.
+Ren, Boyu, Sergio Bacallado, Stefano Favaro, Susan Holmes, and Lorenzo Trippa. 2016. “Bayesian Nonparametric Ordination for the Analysis of Microbial Communities.” *ArXiv Preprint ArXiv:1601.05156*.

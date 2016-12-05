@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{PlotStatis}
 \alias{PlotStatis}
-\title{Plot ordination results with credible region based on results from DirFactor.}
+\title{Plot ordination results with credible regions based on posterior simulations from DirFactor.}
 \usage{
 PlotStatis(all.cov, n.dim = 2, labels = NA, types = NA, dist = F)
 }
@@ -24,7 +24,7 @@ is a normalized Gram matrix. If set to TRUE, each element in \code{all.cov} is a
 A list contains all pairwise ordination plots between the first \code{n.dim} axes.
 }
 \description{
-Plot ordination results with credible region based on results from DirFactor.
+Plot ordination results with credible regions based on posterior simulations from DirFactor.
 }
 \note{
 The STATIS method is implemented by \code{DistatisR} (Abdi et. al. (2005)).

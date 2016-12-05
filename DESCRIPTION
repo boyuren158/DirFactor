@@ -2,11 +2,11 @@ Package: DirFactor
 Type: Package
 Title: Dependent Dirichlet processes factor model for nonparametric ordination
     fo microbiome data
-Version: 1.0
+Version: 0.99.1
 Date: 2016-12-02
 Author: Boyu Ren <bor158@mail.harvard.edu>
 Maintainer: Boyu Ren <bor158@mail.harvard.edu>
-Description: 
+Description: DirFactor is a Bayesian nonparametric model for analyzing microbiome data via OTU table. It assumes a Dependent Dirichlet processes prior on the probabilities of species and by MCMC simulation, identifies a set of low dimensional latent factors that explain most of the variability of the distributions of species across biological samples.  The model adaptively selects the dimension of the latent factor space and enables nonparametric ordination of biological samples. The application of this package mainly focuses on ordination of microbial abundance data. On top of the traditional ordination plots, we provide a visualization of the uncertainty of the ordination as well.
 License: MIT + file LICENSE
 VignetteBuilder: knitr
 Suggests:
@@ -15,5 +15,8 @@ Imports:
     truncnorm, 
     mvtnorm,
     coda,
-    DistatisR
+    DistatisR,
+    ggplot2,
+    fpc,
+    reshape2
 RoxygenNote: 5.0.1

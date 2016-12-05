@@ -2,6 +2,7 @@
 
 export(ConvDiagnosis)
 export(DirFactor)
+export(PlotClustering)
 export(PlotStatis)
 export(SimDirFactorBlock)
 export(SimDirFactorContour)

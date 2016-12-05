@@ -38,6 +38,8 @@ A list contains the following fields:
 Generate synthetic OTU abundance table from DirFactor model with two biological sample clusters.
 }
 \examples{
+my.hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, 
+                 a2 = 4, m = 10, alpha = 10, beta = 0 )
 SimDirFactorContour( strength = 1, vcounts=c(1e5,1e6), n = 22, p = 68, m = 3, hyper = my.hyper )
 }
 

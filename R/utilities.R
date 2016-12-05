@@ -10,7 +10,7 @@ rv.coef = function( A, B ){
 
 gg.heatmap <- function( cormt, x.lab="", y.lab="", title="" ){
   plot.dat = reshape2::melt( cormt )
-  ggplot( dat = plot.dat, aes( x=Var1, y=Var2, fill=value ) ) + geom_tile(color = "black") + 
+  ggplot( data = plot.dat, aes( x=Var1, y=Var2, fill=value ) ) + geom_tile(color = "black") + 
     scale_fill_gradient2( low="steelblue", mid = "white", high = "red", limits=c(-1, 1) ) + 
     theme_bw() + coord_fixed() + 
     theme( axis.title = element_text(face="bold"), plot.title = element_text(face="bold"),
@@ -106,6 +106,54 @@ ConvDiagnosis = function( lsMCMC, start, end, thin, n.eig = 1 ){
   return( coda::gelman.diag( mcmc.eig, multivariate = F )$psrf )
 }
 
+#' Plot posterior probability of pairwise classification based on posterior 
+#' samples of pairwise distances between biological samples.
+#' 
+#' @param all.dist A list contains posterior samples of pairwise distances
+#' between biological samples. Each element is a distance matrix.
+#' @param labels A character vector indicates the label for each biological 
+#' sample.
+#' @return A ggplot figure object. It illustrates the posterior probability
+#' of two biological samples being clustered together. The rows and columns 
+#' are sorted by labels of biological samples.
+#' @export
+PlotClustering = function( all.dist, labels ){
+  #get posterior clustering probability
+  res.cluster = lapply( all.dist, function(x){
+    x = as.matrix(x)
+    cluster = fpc::pamk( x, krange = seq(2,ncol(x)-1), diss = T )
+    cluster.id = cluster$pamobject$clustering
+    outer( cluster.id, cluster.id, "==" )
+  })
+  res.cluster.mt = array( unlist( res.cluster ), dim = c( dim( res.cluster[[1]] ), length( res.cluster ) ) )
+  res.cluster.mean = apply( res.cluster.mt, 1:2, mean )
+  
+  #plot the clustering results
+  res.mt.order = res.cluster.mean[order( labels ),order( labels )]
+  plot.res = reshape2::melt( res.mt.order )
+  axis.labels = levels( labels )
+  axis.pos = cumsum( table( labels ) ) + 0.5
+  axis.text.pos = as.vector( axis.pos - table( labels )/2 )
+  x.delim = data.frame( x = axis.pos, xend = axis.pos, yend = rep( 0.5, length(axis.pos) ), y = rep( 0, length(axis.pos) ) )
+  y.delim = data.frame( y = axis.pos, yend = axis.pos, xend = rep( 0.5, length(axis.pos) ), x = rep( 0, length(axis.pos) ) )
+  
+  ggplot() + geom_tile( data = plot.res, aes( x=Var1, y=Var2, fill = value ), color = "black" ) + 
+    scale_fill_gradient( low = "white", high = "red" ) + guides(fill=guide_legend(title="Posterior\nprobability")) +
+    annotate( geom="text", x = axis.text.pos, y = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
+    annotate( geom="text", y = axis.text.pos, x = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
+    theme_bw() + coord_fixed() + 
+    theme( axis.text = element_blank( ),
+           axis.title = element_blank(),
+           axis.ticks = element_blank(),
+           panel.border = element_blank(),
+           panel.grid.major = element_blank(),
+           panel.grid.minor = element_blank(),
+           legend.title = element_text(size = 18,face = "bold"),
+           legend.text = element_text(size = 15) ) + 
+    geom_segment( data = x.delim, aes(x = x, xend = xend, y = y, yend = yend ) ) + 
+    geom_segment( data = y.delim, aes(x = x, xend = xend, y = y, yend = yend ) )
+}
+
 
 #' Generate synthetic OTU abundance table from DirFactor model with block diagonal 
 #' between-sample Gram matrix.
@@ -131,7 +179,9 @@ ConvDiagnosis = function( lsMCMC, start, end, thin, n.eig = 1 ){
 #'   }
 #' 
 #' @examples
-#' SimDirFactor( vcounts=c(1e5,1e6), n = 22, p = 68, m = 3, hyper = my.hyper )
+#' my.hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, 
+#'                  a2 = 4, m = 10, alpha = 10, beta = 0 )
+#' SimDirFactorBlock( vcounts=c(1e5,1e6), n = 22, p = 68, m = 3, hyper = my.hyper )
 #' @export
 SimDirFactorBlock = function( vcounts, n, p, m, hyper, K = 1, a = 2 ){
   sigma.dist = generate.sigma.prior( p, alpha = hyper$alpha, beta = hyper$beta )
@@ -142,8 +192,13 @@ SimDirFactorBlock = function( vcounts, n, p, m, hyper, K = 1, a = 2 ){
   X = matrix( rnorm( p*m ), nrow = m )
   
   #split the m factors into K blocks
-  factor.indx.group = split( 1:m, cut( 1:m, breaks = K ) )
-  pop.indx.group = split( 1:n, cut( 1:n, breaks = K ) )
+  if( K > 1 ){
+    factor.indx.group = split( 1:m, cut( 1:m, breaks = K ) )
+    pop.indx.group = split( 1:n, cut( 1:n, breaks = K ) ) 
+  }else{
+    factor.indx.group = 1:m
+    pop.indx.group = 1:n
+  }
   Y = matrix( 0, nrow = m, ncol = n )
   
   for( x in 1:K ){
@@ -178,6 +233,8 @@ SimDirFactorBlock = function( vcounts, n, p, m, hyper, K = 1, a = 2 ){
 #'   }
 #' 
 #' @examples
+#' my.hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, 
+#'                  a2 = 4, m = 10, alpha = 10, beta = 0 )
 #' SimDirFactorSym( vcounts=c(1e5,1e6), n = 22, p = 68, m = 3, hyper = my.hyper )
 #' @export
 SimDirFactorSym = function( vcounts, n, p, m, hyper, K = 2, a = 2, Y.corr = 0.5 ){
@@ -225,6 +282,8 @@ SimDirFactorSym = function( vcounts, n, p, m, hyper, K = 2, a = 2, Y.corr = 0.5 
 #'   }
 #' 
 #' @examples
+#' my.hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, 
+#'                  a2 = 4, m = 10, alpha = 10, beta = 0 )
 #' SimDirFactorContour( strength = 1, vcounts=c(1e5,1e6), n = 22, p = 68, m = 3, hyper = my.hyper )
 #' @export
 SimDirFactorContour = function( strength, vcounts, n, p, m, hyper ){

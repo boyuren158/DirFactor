@@ -80,6 +80,9 @@ If the users want to specify the starting values for the model parameters, they 
 }
 }
 \examples{
-DirFactor( mt.BugAbundance, my.start, my.hyper, save.obj = c("Y", "er") )
+my.hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, 
+                 a2 = 4, m = 10, alpha = 10, beta = 0 )
+my.sim = SimDirFactorBlock( 1e6, n = 22, p = 68, m = 3, my.hyper, K = 2 )
+DirFactor( my.sim$data[[1]], my.hyper, save.obj = c("Y", "er"), step.disp = 100 )
 }
 

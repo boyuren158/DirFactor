@@ -61,7 +61,7 @@ T.aug.gibbs = function( T.aug.old, sigma, Q, sum.sample, hold = F){
 
 # Gibbs step for sampling Q
 Q.gibbs.ind = function( x, T.aug, Sigma.cond ){
-
+  
   #decompress data
   reads = x[1]
   mu.cond = x[2]
@@ -142,8 +142,8 @@ Q.gibbs.vec.n0 = function( para.n0, tmp.Q.n0 ){
   
   #metropolis hastings
   rej = rej.u( tmp.Q.n0, Q.prop, 
-                 para.n0[,1], para.n0[,3], para.n0[,4], para.n0[,2], para.n0[,5], 
-                 Q.mode, Q.sd )
+               para.n0[,1], para.n0[,3], para.n0[,4], para.n0[,2], para.n0[,5], 
+               Q.mode, Q.sd )
   labels = ( -rexp(n.n0) < rej )
   
   Q.ret = tmp.Q.n0
@@ -209,7 +209,10 @@ Q.gibbs.vec.n0 = function( para.n0, tmp.Q.n0 ){
 #' }
 #' 
 #' @examples
-#' DirFactor( mt.BugAbundance, my.start, my.hyper, save.obj = c("Y", "er") )
+#' my.hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, 
+#'                  a2 = 4, m = 10, alpha = 10, beta = 0 )
+#' my.sim = SimDirFactorBlock( 1e6, n = 22, p = 68, m = 3, my.hyper, K = 2 )
+#' DirFactor( my.sim$data[[1]], my.hyper, save.obj = c("Y", "er"), step.disp = 100 )
 #' @export
 DirFactor <- function( data, hyper, start = NA, save.path = NA, 
                        save.obj = c("sigma", "Q", "T.aug", "X", "Y", "er", "delta", "phi"), 
@@ -226,14 +229,26 @@ DirFactor <- function( data, hyper, start = NA, save.path = NA,
   sp.log = log( sigma.prior )
   
   #initialization
-  sigma.old = as.vector( start$sigma )
-  Q.old = start$Q
-  T.aug.old = as.vector( start$T.aug )
-  X.old = start$X
-  Y.old = start$Y
-  er.old = start$er
-  delta.old = as.vector(start$delta)
-  phi.old = start$phi
+  if(is.na(start)){
+    sigma.old = sample( sigma.value, size = p, replace = T, prob = sigma.prior ) 
+    T.aug.old = colSums( data )
+    Q.old = matrix( 0.5, nrow = p, ncol = n )
+    X.old = matrix( rnorm( hyper$m*p ), nrow = hyper$m )
+    Y.old = matrix( rnorm( hyper$m*n ), nrow = hyper$m )
+    er.old = 1/rgamma( 1, shape = hyper$a.er, rate = hyper$b.er )
+    delta.old = c( rgamma( 1, shape = hyper$a1, rate = 1 ), 
+                   rgamma( hyper$m-1, shape = hyper$a2, rate = 1 ) )
+    phi.old = matrix( rgamma( hyper$m*n, shape = hyper$nv/2, rate = hyper$nv/2 ), nrow = n )
+  }else{
+    sigma.old = as.vector( start$sigma )
+    Q.old = start$Q
+    T.aug.old = as.vector( start$T.aug )
+    X.old = start$X
+    Y.old = start$Y
+    er.old = start$er
+    delta.old = as.vector(start$delta)
+    phi.old = start$phi
+  }
   
   all.cache = vector("list", length = length(save.obj))
   names(all.cache) = save.obj
@@ -254,7 +269,7 @@ DirFactor <- function( data, hyper, start = NA, save.path = NA,
     }
     sigma.old = sigma.gibbs( sigma.old, T.aug.old, Q.old, sum.species, 
                              sigma.value, sigma.prior,sv.log, sp.log )
-
+    
     #sample T
     if( 'T.aug' %in% save.obj ){
       all.cache$T.aug = T.aug.old
@@ -273,8 +288,8 @@ DirFactor <- function( data, hyper, start = NA, save.path = NA,
     Q.n0 = Q.gibbs.vec.n0( Q.para.all[!Q.labels, c(1,2,3,5,6)], Q.para.all[!Q.labels, 4] )
     #save it into proper locations
     Q.tmp = rep( 0, nrow( Q.para.all ) )
-    Q.tmp[labels] = Q.0
-    Q.tmp[!labels] = Q.n0
+    Q.tmp[Q.labels] = Q.0
+    Q.tmp[!Q.labels] = Q.n0
     #convert it back to matrix
     Q.old = matrix( Q.tmp, nrow = p )
     
@@ -336,7 +351,7 @@ DirFactor <- function( data, hyper, start = NA, save.path = NA,
     delta.old = delta.tmp
     
     if( iter > burnin*step & iter%%thinning == 0 )
-    saveRDS( all.cache[save.obj], file = paste( save.path, iter, sep = "_") )
+      saveRDS( all.cache[save.obj], file = paste( save.path, iter, sep = "_") )
   }
   t.t.1 = proc.time()
   return( list(running.time = t.t.1 - t.t, save.path = save.path) )
