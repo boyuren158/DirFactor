@@ -1,0 +1,19 @@
+Package: DirFactor
+Type: Package
+Title: Dependent Dirichlet processes factor model for nonparametric ordination
+    fo microbiome data
+Version: 1.0
+Date: 2016-12-02
+Author: Boyu Ren <bor158@mail.harvard.edu>
+Maintainer: Boyu Ren <bor158@mail.harvard.edu>
+Description: 
+License: MIT + file LICENSE
+VignetteBuilder: knitr
+Suggests:
+    knitr
+Imports:
+    truncnorm, 
+    mvtnorm,
+    coda,
+    DistatisR
+RoxygenNote: 5.0.1
