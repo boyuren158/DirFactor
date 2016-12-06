@@ -1,7 +1,7 @@
 Dependent Dirichlet processes factor model for nonparametric ordination in Microbiome data (DirFactor)
 ================
 Boyu Ren
-2016-12-05
+2016-12-06
 
 -   [Introduction](#introduction)
 -   [How To Run](#how-to-run)
@@ -61,7 +61,7 @@ There are two required input for running `DirFactor`. A `data` matrix stores the
 ``` r
 hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, a2 = 4, m = 10, alpha = 10, beta = 0 )
 sim.data = SimDirFactorBlock( 1e6, n = 22, p = 68, m = 3, hyper )
-mcmc.out = DirFactor( sim.data[[1]], hyper )
+mcmc.out = DirFactor( sim.data$data[[1]], hyper )
 ```
 
 Simulation studies for DirFactor
