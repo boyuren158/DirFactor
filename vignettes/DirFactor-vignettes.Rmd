@@ -421,7 +421,7 @@ We also consider a vaginal dataset [@Ravel] which contains a larger number of bi
 We performed the same analyses as in the previous subsection and will load the MCMC results directly. The code for generating the figures are listed below:
 ```{r ravel, eval=FALSE, cache=TRUE, results="hide"}
 library(phyloseq)
-data(JRfilt)
+data(JRphylo)
 # filtering Ravel's data by occurence
 JRfilt = genefilter_sample(JRphylo, filterfun_sample(function(x) x > 5), A = 0.1 * nsamples(JRphylo))
 JR1 = prune_taxa(JRfilt, JRphylo)

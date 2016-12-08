@@ -446,7 +446,7 @@ We performed the same analyses as in the previous subsection and will load the M
 
 ``` r
 library(phyloseq)
-data(JRfilt)
+data(JRphylo)
 # filtering Ravel's data by occurence
 JRfilt = genefilter_sample(JRphylo, filterfun_sample(function(x) x > 5), A = 0.1 * nsamples(JRphylo))
 JR1 = prune_taxa(JRfilt, JRphylo)
