@@ -361,14 +361,14 @@ The last thing we checked in the simulation studies is whether the ordination re
 
 ```{r contour, eval=FALSE, cache=TRUE, warning=FALSE, message=FALSE, results="hide"}
 hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, a2 = 4, m = 22, alpha = 10, beta = 0 )
-sim.data.contour = SimDirFactorContour( strength = 3, 1000, n = 22, p = 68, m = 3 )
+sim.data.contour = SimDirFactorContour( strength = 3, 1000, n = 22, p = 68, m = 3, hyper )
 
 mcmc.res.contour = DirFactor( sim.data.contour$data[[1]], hyper, step = 50000, thin=5 )
-all.res = lapply( paste( mcmc.res.contour$save.path, seq( 20005,50000,5)), readRDS )
+all.res = lapply( paste( mcmc.res.contour$save.path, seq( 20005,50000,5), sep = "_" ), readRDS )
 all.corr = lapply( all.res, function(x) cov2cor( t(x$Y)%*%x$Y + diag( rep( x$er, ncol(x$Y) ) ) ) )
 all.corr.use = all.corr[sample(1:length(all.corr),size = 1000, replace = T)]
   
-statis.res = PlotStatis( all.corr.use, n.dim = 2, types = rep( c(1:2), each = 11 ) )
+statis.res = PlotStatis( all.corr.use, n.dim = 2, types = rep( c(1:2), each = 11 ), labels = 1:22 )
 statis.res[[1]]
 ```
 ![Figure4.pdf](https://github.com/boyuren158/DirFactor/blob/master/vignettes/Figure4.png?raw=true)
@@ -376,7 +376,7 @@ statis.res[[1]]
 ## Two applications of DirFactor
 
 ### GlobalPatterns dataset
-The GlobalPatterns dataset [@GP] includes 26 biological samples derived from both human and environmental specimens. There are a total of 19,216 OTUs and the average total counts per biological sample is larger than 100,000. We collapsed all taxa OTUs to the genus level--a standard operation in microbiome studies--and yielded 996 distinct genera. We treated these genera as OTUs’ and fit our model to this collapsed dataset. We ran one MCMC chain for 50,000 iterations and recorded posterior samples every 10 iterations.
+The GlobalPatterns dataset [@GP] includes 26 biological samples derived from both human and environmental specimens. There are a total of 19,216 OTUs and the average total counts per biological sample is larger than 100,000. We collapsed all taxa OTUs to the genus level--a standard operation in microbiome studies--and yielded 996 distinct genera. We treated these genera as OTUs and fit our model to this collapsed dataset. We ran one MCMC chain for 50,000 iterations and recorded posterior samples every 10 iterations.
 
 We first performed a cluster analysis of biological samples based on their microbial compositions. We then visualized the biological samples using ordination plots with the associated credible intervals. We specify the number of axes we considered in ordination as three. In both analyses, we choose to use the distance matrix calculated from the estimated probabilities of species to capture the relationship between biological samples. The distance metric is Bray-Curtis dissimilarity. The code for the clustering analysis and ordination plots are listed below.
 ```{r GlobalPattern, eval=FALSE, cache=TRUE, results="hide"}

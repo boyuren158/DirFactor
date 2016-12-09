@@ -254,7 +254,7 @@ DirFactor <- function( data, hyper, start = NA, save.path = NA,
   names(all.cache) = save.obj
   
   if( is.na(save.path) ){
-    save.path = paste(tempdir(), "sim", sep="/")
+    save.path = paste(normalizePath(tempdir(), winslash = "/"), "sim", sep="/")
   }
   
   t.t = proc.time()

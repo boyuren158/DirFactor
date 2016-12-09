@@ -38,42 +38,46 @@ gg.color.hue <- function(n) {
 #' @return A list contains all pairwise ordination plots between the first \code{n.dim} axes.
 #' @export
 PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
-  all.cov.array = array( unlist( all.cov), dim = c(dim(all.cov[[1]]), length(all.cov)) )
+  all.cov = all.corr.use
+  all.cov.array = array( unlist( all.cov ), dim = c(dim(all.cov[[1]]), length(all.cov)) )
   all.statis.res = DistatisR::distatis( all.cov.array, Distance = dist, nfact2keep = n.dim )
   compromise.ev = eigen(all.statis.res$res4Splus$Splus)$values
   compromise.prop = compromise.ev[1:n.dim]/sum(compromise.ev)
-  compromise.coord = apply( compromise.distatis$res4Splus$PartialF, 2, rbind )
+  compromise.coord = apply( all.statis.res$res4Splus$PartialF, 2, rbind )
   n.rep = nrow( compromise.coord )/nrow(all.cov[[1]])
-  
+
+  plot.list = vector('list',length = n.dim*(n.dim-1)/2 )
+  fig.idx = 1
   for( axis.i in 1:(n.dim-1) ){
-    for( axis.j in (axis.i):n.dim ){
-      plot.data = data.frame( x = all.coord[,axis.i], y = all.coord[,axis.j], 
+    for( axis.j in (axis.i+1):n.dim ){
+      plot.data = data.frame( x = compromise.coord[,axis.i], y = compromise.coord[,axis.j], 
                               group = rep( 1:nrow(all.cov[[1]]), n.rep) )
       contr = ggplot() + geom_density2d (data = plot.data, aes( x=x, y=y, group = group) ) +
         theme_bw()
       
-      if(!is.na(types)){
+      if(!any(is.na(types))){
+        types = as.factor(types)
         types.color = gg.color.hue( length(levels(types) ) )
         plot.data$types = rep(types, n.rep)
-        contr = contr + geom_density2d(aes(color = types))
+        contr = contr + geom_density2d(data = plot.data, aes( x=x, y=y, group = group, color = types)) +
+          scale_color_manual( values = types.color )
       }
-      if(!is.na(labels)){
+      if(!any(is.na(labels))){
         x.annote = tapply( plot.data$x, plot.data$group, mean )
         y.annote = tapply( plot.data$y, plot.data$group, mean )
         annote.data = data.frame( x=x.annote, y=y.annote, 
                                   labels = as.character( labels ) )
         contr = contr + geom_point( data = annote.data, aes( x=x, y=y )  ) +
           with(annote.data, annotate(geom="text", x = x+0.01 , y = y, label = labels, size = 8) )
-        if(!is.na(types)){
-          annote.data$color = types.color[as.numeric(types)]
-          contr = contr + geom_point( aes(color = color) ) + with(annote.data,annotate(color=color))
-        }
       }
       contr = contr + xlab(sprintf("Compromise axis %d (%.2f%%)", axis.i, compromise.prop[axis.i]*100)) +
         ylab(sprintf("Compromise axis %d (%.2f%%)", axis.j, compromise.prop[axis.j]*100))
-      plot.list = list( plot.list, contr )
+      
     }
+    plot.list[[fig.idx]] = contr
+    fig.idx = fig.idx + 1
   }
+  plot.list
 }
 
 #' Calculate Rhat statistic and generate traceplots for MCMC results

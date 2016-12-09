@@ -1,7 +1,7 @@
 Dependent Dirichlet processes factor model for nonparametric ordination in Microbiome data (DirFactor)
 ================
 Boyu Ren
-2016-12-07
+2016-12-08
 
 -   [Introduction](#introduction)
 -   [How To Run](#how-to-run)
@@ -22,7 +22,7 @@ Boyu Ren
 Introduction
 ------------
 
-Human microbiome studies use sequencing technologies to measure the abundance of bacterial species or Operational Taxonomic Units (OTUs) in samples of biological material. Typically the data are organized in contingency tables with OTU counts across heterogeneous biological samples. In the microbial ecology community, ordination methods are frequently used to investigate latent factors or clusters that capture and describe variations of OTU counts across biologi- cal samples. It remains important to evaluate how uncertainty in estimates of each biological sample’s microbial distribution propagates to ordination analyses, including visualization of clusters and projections of biological samples on low dimensional spaces.
+Human microbiome studies use sequencing technologies to measure the abundance of bacterial species or Operational Taxonomic Units (OTUs) in samples of biological material. Typically the data are organized in contingency tables with OTU counts across heterogeneous biological samples. In the microbial ecology community, ordination methods are frequently used to investigate latent factors or clusters that capture and describe variations of OTU counts across biologi- cal samples. It remains important to evaluate how uncertainty in estimates of each biological sample<U+9225><U+6A9A> microbial distribution propagates to ordination analyses, including visualization of clusters and projections of biological samples on low dimensional spaces.
 
 We propose a Bayesian analysis for dependent distributions to endow frequently used ordinations with estimates of uncertainty. A Bayesian nonparametric prior for dependent normalized random measures is constructed, which is marginally equivalent to the normalized generalized Gamma process, a well-known prior for nonparametric analyses. In our prior the dependence and similarity between microbial distributions is represented by latent factors that concentrate in a low dimensional space. We use a shrinkage prior to tune the dimensionality of the latent factors. The resulting posterior samples of model parameters can be used to evaluate uncertainty in analyses routinely applied in microbiome studies. Specifically, by combining them with multivariate data analysis techniques we can visualize credible regions in ecological ordination plots.
 
@@ -379,14 +379,14 @@ The last thing we checked in the simulation studies is whether the ordination re
 
 ``` r
 hyper = list( nv = 3, a.er = 1, b.er = 0.3, a1 = 3, a2 = 4, m = 22, alpha = 10, beta = 0 )
-sim.data.contour = SimDirFactorContour( strength = 3, 1000, n = 22, p = 68, m = 3 )
+sim.data.contour = SimDirFactorContour( strength = 3, 1000, n = 22, p = 68, m = 3, hyper )
 
 mcmc.res.contour = DirFactor( sim.data.contour$data[[1]], hyper, step = 50000, thin=5 )
-all.res = lapply( paste( mcmc.res.contour$save.path, seq( 20005,50000,5)), readRDS )
+all.res = lapply( paste( mcmc.res.contour$save.path, seq( 20005,50000,5), sep = "_" ), readRDS )
 all.corr = lapply( all.res, function(x) cov2cor( t(x$Y)%*%x$Y + diag( rep( x$er, ncol(x$Y) ) ) ) )
 all.corr.use = all.corr[sample(1:length(all.corr),size = 1000, replace = T)]
   
-statis.res = PlotStatis( all.corr.use, n.dim = 2, types = rep( c(1:2), each = 11 ) )
+statis.res = PlotStatis( all.corr.use, n.dim = 2, types = rep( c(1:2), each = 11 ), labels = 1:22 )
 statis.res[[1]]
 ```
 
@@ -397,7 +397,7 @@ Two applications of DirFactor
 
 ### GlobalPatterns dataset
 
-The GlobalPatterns dataset (Caporaso et al. 2011) includes 26 biological samples derived from both human and environmental specimens. There are a total of 19,216 OTUs and the average total counts per biological sample is larger than 100,000. We collapsed all taxa OTUs to the genus level--a standard operation in microbiome studies--and yielded 996 distinct genera. We treated these genera as OTUs’ and fit our model to this collapsed dataset. We ran one MCMC chain for 50,000 iterations and recorded posterior samples every 10 iterations.
+The GlobalPatterns dataset (Caporaso et al. 2011) includes 26 biological samples derived from both human and environmental specimens. There are a total of 19,216 OTUs and the average total counts per biological sample is larger than 100,000. We collapsed all taxa OTUs to the genus level--a standard operation in microbiome studies--and yielded 996 distinct genera. We treated these genera as OTUs and fit our model to this collapsed dataset. We ran one MCMC chain for 50,000 iterations and recorded posterior samples every 10 iterations.
 
 We first performed a cluster analysis of biological samples based on their microbial compositions. We then visualized the biological samples using ordination plots with the associated credible intervals. We specify the number of axes we considered in ordination as three. In both analyses, we choose to use the distance matrix calculated from the estimated probabilities of species to capture the relationship between biological samples. The distance metric is Bray-Curtis dissimilarity. The code for the clustering analysis and ordination plots are listed below.
 
