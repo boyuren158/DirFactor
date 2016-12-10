@@ -1,7 +1,7 @@
 Dependent Dirichlet processes factor model for nonparametric ordination in Microbiome data (DirFactor)
 ================
 Boyu Ren
-2016-12-08
+2016-12-10
 
 -   [Introduction](#introduction)
 -   [How To Run](#how-to-run)
@@ -412,8 +412,7 @@ gp.metadata = sample_data( GlobalPatterns )
 data = otu_table( gp.genus )
 
 gp.mcmc = DirFactor( data, hyper, step = 50000, thinning=10 )
-gp.all.res = lapply( list.files( gp.mcmc$save.path, pattern = "res_", full.names = T ),
-                  readRDS )
+gp.all.res = lapply( paste( gp.mcmc$save.path, seq(10010,50000,10), sep = "_" ), readRDS )
 
 #get bray-curtis distance matrix
 all.bc.gp = lapply( gp.all.res, function(x){
@@ -452,8 +451,7 @@ JRfilt = genefilter_sample(JRphylo, filterfun_sample(function(x) x > 5), A = 0.1
 JR1 = prune_taxa(JRfilt, JRphylo)
 
 ravel.mcmc = DirFactor( t(otu_table(JR1)), hyper, step = 50000, thinning = 10 )
-ravel.all.res = lapply( list.files( ravel.mcmc$save.path, pattern = "res_", full.names = T ),
-                  readRDS )
+ravel.all.res = lapply( paste( ravel.mcmc$save.path, seq( 10010, 50000, 10 ), sep = "_" ), readRDS )
 
 #get bray-curtis distance matrix
 all.bc.ravel = lapply( ravel.all.res, function(x){
