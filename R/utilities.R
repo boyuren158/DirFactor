@@ -88,19 +88,30 @@ PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
 #' column is the upper confidence limits. \code{n.eig} traceplots will also be generated for the first 
 #' \code{n.eig} eigenvalues.
 #' @export
-ConvDiagnosis = function( lsMCMC, start, end, thin, n.eig = 1 ){
-  mcmc.eig = lapply( lsMCMC, function(indMCMC){
-    coda::mcmc( t( matrix( sapply( indMCMC, function(indIter){
+ConvDiagnosis = function( lsMCMC, truth, start, end, thin, title, n.eig = 1 ){
+  ev.tru = eigen( cov2cor( t(truth$Y)%*%truth$Y + diag(truth$er, nrow = ncol(truth$Y)) ) )$values[1:n.eig]
+  
+  mcmc.eig = ListtoArray( lapply( lsMCMC, function(indMCMC){
+    t( matrix( sapply( indMCMC, function(indIter){
       eig.res = eigen( cov2cor( t(indIter$Y)%*%indIter$Y + diag(rep(indIter$er,ncol(indIter$Y)) ) ) )
       eig.res$values[1:n.eig]
-    }), nrow = n.eig ) ), start = start, end = end, thin = thin )
-  } )
+    }), nrow = n.eig ) )
+  } ) )
+  
+  mcmc.eig.obj = lapply( 1:n.eig, function(x) 
+    lapply( 1:ncol(mcmc.eig[,x,]), function(x.i) mcmc(mcmc.eig[,x,x.i],start=start,end=end,thin=thin) ) )
+  
   #traceplots
-  par(mfrow = c(n.eig,1) )
-  coda::traceplot( mcmc.eig, smooth = F, type = "l" )
-  par(mfrow = c(1,1) )
+  rhat.all = matrix( nrow = n.eig, ncol = 2 )
+  for( i in 1:n.eig ){
+    rhat = as.vector( coda::gelman.diag( mcmc.eig.obj[[i]], multivariate = F )$psrf )
+    rhat.all[i,] = rhat
+    coda::traceplot( mcmc.eig.obj[[i]], ylab = sprintf("Eigenvalue %d", i), 
+                     main = paste( title, " Rhat=", round( rhat[1], digits = 3 ), sep = "" )  )
+    abline( h = ev.tru[i], col = "blue", lwd = 2 )
+  }
   #calculate Rhat statistics
-  return( coda::gelman.diag( mcmc.eig, multivariate = F )$psrf )
+  return( rhat.all )
 }
 
 #' Plot posterior probability of pairwise classification based on posterior 
@@ -309,4 +320,11 @@ SimDirFactorContour = function( strength, vcounts, n, p, m, hyper ){
   
   return( list( sigma = sigma, Q = Q, data = data,
                 X.tru=X, Y.tru = Y, er = er ) )
+}
+
+SimDirFactorCustom = function( vcounts, sigma, X, Y, er ){
+  Q = t(X)%*%Y + matrix( rnorm( ncol(X)*ncol(Y), sd = sqrt(er) ), nrow = ncol(X) )
+  final.weights = sigma*Q^2*(Q>0)
+  data = lapply( vcounts, function(counts) apply( final.weights, 2, function(x) rmultinom( 1, counts, prob = x ) ) )
+  return( list( data = data ) )
 }
