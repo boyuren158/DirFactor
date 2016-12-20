@@ -84,6 +84,10 @@ PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
 #' @param start The iteration number of the first observation.
 #' @param end The iteration number of the last observation.
 #' @param thin The thinning interval between consecutive observations.
+#' @param title The title of each figure.
+#' @param If provided, a list contains the simulation truth for the dataset. 
+#' Must include two fields \code{Y}, the latent biological sample factors, and
+#' \code{er}, the variance of the pure error.
 #' @param n.eig Number of eigen values the diagnosis will consider. Default is 1.
 #' @note
 #' The diagnosis is carried out using the MCMC samples of the first \code{n.eig} eigenvalues of the
@@ -92,9 +96,7 @@ PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
 #' column is the upper confidence limits. \code{n.eig} traceplots will also be generated for the first 
 #' \code{n.eig} eigenvalues.
 #' @export
-ConvDiagnosis = function( lsMCMC, truth, start, end, thin, title, n.eig = 1 ){
-  ev.tru = eigen( cov2cor( t(truth$Y)%*%truth$Y + diag(truth$er, nrow = ncol(truth$Y)) ) )$values[1:n.eig]
-  
+ConvDiagnosis = function( lsMCMC, start, end, thin, title, truth = NA, n.eig = 1 ){
   mcmc.eig = ListtoArray( lapply( lsMCMC, function(indMCMC){
     t( matrix( sapply( indMCMC, function(indIter){
       eig.res = eigen( cov2cor( t(indIter$Y)%*%indIter$Y + diag(rep(indIter$er,ncol(indIter$Y)) ) ) )
@@ -106,13 +108,18 @@ ConvDiagnosis = function( lsMCMC, truth, start, end, thin, title, n.eig = 1 ){
     lapply( 1:ncol(mcmc.eig[,x,]), function(x.i) mcmc(mcmc.eig[,x,x.i],start=start,end=end,thin=thin) ) )
   
   #traceplots
+  if(!is.na(truth)){
+    ev.tru = eigen( cov2cor( t(truth$Y)%*%truth$Y + diag(truth$er, nrow = ncol(truth$Y)) ) )$values[1:n.eig]
+  }
   rhat.all = matrix( nrow = n.eig, ncol = 2 )
   for( i in 1:n.eig ){
     rhat = as.vector( coda::gelman.diag( mcmc.eig.obj[[i]], multivariate = F )$psrf )
     rhat.all[i,] = rhat
     coda::traceplot( mcmc.eig.obj[[i]], ylab = sprintf("Eigenvalue %d", i), 
                      main = paste( title, " Rhat=", round( rhat[1], digits = 3 ), sep = "" )  )
-    abline( h = ev.tru[i], col = "blue", lwd = 2 )
+    if(!is.na(truth)){
+      abline( h = ev.tru[i], col = "blue", lwd = 2 )
+    }
   }
   #calculate Rhat statistics
   return( rhat.all )

@@ -4,7 +4,7 @@
 \alias{ConvDiagnosis}
 \title{Calculate Rhat statistic and generate traceplots for MCMC results}
 \usage{
-ConvDiagnosis(lsMCMC, truth, start, end, thin, title, n.eig = 1)
+ConvDiagnosis(lsMCMC, start, end, thin, title, truth = NA, n.eig = 1)
 }
 \arguments{
 \item{lsMCMC}{A list of MCMC simulation results. \code{lsMCMC>=2} is required for the Rhat statistic
@@ -16,7 +16,13 @@ calculation.}
 
 \item{thin}{The thinning interval between consecutive observations.}
 
+\item{title}{The title of each figure.}
+
 \item{n.eig}{Number of eigen values the diagnosis will consider. Default is 1.}
+
+\item{If}{provided, a list contains the simulation truth for the dataset. 
+Must include two fields \code{Y}, the latent biological sample factors, and
+\code{er}, the variance of the pure error.}
 }
 \value{
 A matrix contains the Rhat statistics. The first column is the point estimates and the second
