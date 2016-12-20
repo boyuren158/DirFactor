@@ -222,7 +222,8 @@ DirFactor <- function( data, hyper, start = NA, save.path = NA,
   sum.species = rowSums( data )
   sum.sample = colSums( data )
   
-  sigma.dist = generate.sigma.prior( p, hyper$alpha, hyper$beta )
+  sigma.dist = generate.sigma.prior( p = p, alpha = hyper$alpha, 
+                                     beta = hyper$beta )
   sigma.value = sigma.dist$sigma.value
   sigma.prior = sigma.dist$sigma.prior
   sv.log = log( sigma.value )
