@@ -1,5 +1,9 @@
 #' @import ggplot2
 
+ListtoArray = function( res.all ){
+  array( unlist(res.all), dim = c(dim(res.all[[1]]), length(res.all)) )
+}
+
 mt.trace = function( A ){
   sum(diag(A))
 }
@@ -322,6 +326,20 @@ SimDirFactorContour = function( strength, vcounts, n, p, m, hyper ){
                 X.tru=X, Y.tru = Y, er = er ) )
 }
 
+#' Generate synthetic OTU table from DirFactor model using latent factors provided by users.
+#' 
+#' @inheritParams SimDirFactorBlock
+#' @param sigma A length \code{p} vector. \code{p} is the number of species. 
+#' Global abundance parameter for species.
+#' @param X A \code{m*p} matrix. \code{m} is the number of factors. Latent 
+#' factors for species.
+#' @param Y A \code{m*n} matrix. \code{n} is the number of biological samples. 
+#' Latent factors for biological samples.
+#' @param er A positive scalar. Variance of the pure noise.
+#' 
+#' @return A list with \code{length(vcounts)} elements. The \code{i}th elment is 
+#' an OTU table with total counts per biological sample \code{vcounts[i]}.
+#' @export
 SimDirFactorCustom = function( vcounts, sigma, X, Y, er ){
   Q = t(X)%*%Y + matrix( rnorm( ncol(X)*ncol(Y), sd = sqrt(er) ), nrow = ncol(X) )
   final.weights = sigma*Q^2*(Q>0)
