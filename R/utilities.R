@@ -105,10 +105,10 @@ ConvDiagnosis = function( lsMCMC, start, end, thin, title, truth = NA, n.eig = 1
   } ) )
   
   mcmc.eig.obj = lapply( 1:n.eig, function(x) 
-    lapply( 1:ncol(mcmc.eig[,x,]), function(x.i) mcmc(mcmc.eig[,x,x.i],start=start,end=end,thin=thin) ) )
+    lapply( 1:ncol(mcmc.eig[,x,]), function(x.i) coda::mcmc(mcmc.eig[,x,x.i],start=start,end=end,thin=thin) ) )
   
   #traceplots
-  if(!is.na(truth)){
+  if(!any(is.na(truth))){
     ev.tru = eigen( cov2cor( t(truth$Y)%*%truth$Y + diag(truth$er, nrow = ncol(truth$Y)) ) )$values[1:n.eig]
   }
   rhat.all = matrix( nrow = n.eig, ncol = 2 )
@@ -117,7 +117,7 @@ ConvDiagnosis = function( lsMCMC, start, end, thin, title, truth = NA, n.eig = 1
     rhat.all[i,] = rhat
     coda::traceplot( mcmc.eig.obj[[i]], ylab = sprintf("Eigenvalue %d", i), 
                      main = paste( title, " Rhat=", round( rhat[1], digits = 3 ), sep = "" )  )
-    if(!is.na(truth)){
+    if(!any(is.na(truth))){
       abline( h = ev.tru[i], col = "blue", lwd = 2 )
     }
   }
