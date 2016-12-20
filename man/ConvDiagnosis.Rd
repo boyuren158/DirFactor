@@ -4,7 +4,7 @@
 \alias{ConvDiagnosis}
 \title{Calculate Rhat statistic and generate traceplots for MCMC results}
 \usage{
-ConvDiagnosis(lsMCMC, start, end, thin, n.eig = 1)
+ConvDiagnosis(lsMCMC, truth, start, end, thin, title, n.eig = 1)
 }
 \arguments{
 \item{lsMCMC}{A list of MCMC simulation results. \code{lsMCMC>=2} is required for the Rhat statistic
