@@ -89,6 +89,8 @@ PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
 #' Must include two fields \code{Y}, the latent biological sample factors, and
 #' \code{er}, the variance of the pure error.
 #' @param n.eig Number of eigen values the diagnosis will consider. Default is 1.
+#' @param fast.eig Whether to use fast eigen decomposition algorithm. Default is TRUE and \code{eig_sym} from
+#' \code{rARPACK} package will be used.
 #' @note
 #' The diagnosis is carried out using the MCMC samples of the first \code{n.eig} eigenvalues of the
 #' normalized between-sample Gram matrix.
@@ -96,11 +98,17 @@ PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
 #' column is the upper confidence limits. \code{n.eig} traceplots will also be generated for the first 
 #' \code{n.eig} eigenvalues.
 #' @export
-ConvDiagnosis = function( lsMCMC, start, end, thin, title, truth = NA, n.eig = 1 ){
+ConvDiagnosis = function( lsMCMC, start, end, thin, title, truth = NA, n.eig = 1, fast.eig = TRUE ){
   mcmc.eig = ListtoArray( lapply( lsMCMC, function(indMCMC){
     t( matrix( sapply( indMCMC, function(indIter){
-      eig.res = eigen( cov2cor( t(indIter$Y)%*%indIter$Y + diag(rep(indIter$er,ncol(indIter$Y)) ) ) )
-      eig.res$values[1:n.eig]
+      if( fast.eig ){
+        print("yes")
+        rARPACK::eigs_sym( cov2cor( t(indIter$Y)%*%indIter$Y + diag(rep(indIter$er,ncol(indIter$Y)) ) ), k = n.eig, which = "LM" )$values
+      }
+      else{
+        eig.res = eigen( cov2cor( t(indIter$Y)%*%indIter$Y + diag(rep(indIter$er,ncol(indIter$Y)) ) ) )
+        eig.res$values[1:n.eig]
+      }
     }), nrow = n.eig ) )
   } ) )
   
@@ -115,7 +123,7 @@ ConvDiagnosis = function( lsMCMC, start, end, thin, title, truth = NA, n.eig = 1
   for( i in 1:n.eig ){
     rhat = as.vector( coda::gelman.diag( mcmc.eig.obj[[i]], multivariate = F )$psrf )
     rhat.all[i,] = rhat
-    coda::traceplot( mcmc.eig.obj[[i]], ylab = sprintf("Eigenvalue %d", i), 
+    coda::traceplot( mcmc.eig.obj[[i]], ylab = sprintf("Eigenvalue %d", i), lty = 1,
                      main = paste( title, " Rhat=", round( rhat[1], digits = 3 ), sep = "" )  )
     if(!any(is.na(truth))){
       abline( h = ev.tru[i], col = "blue", lwd = 2 )

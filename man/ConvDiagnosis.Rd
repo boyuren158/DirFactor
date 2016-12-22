@@ -4,7 +4,8 @@
 \alias{ConvDiagnosis}
 \title{Calculate Rhat statistic and generate traceplots for MCMC results}
 \usage{
-ConvDiagnosis(lsMCMC, start, end, thin, title, truth = NA, n.eig = 1)
+ConvDiagnosis(lsMCMC, start, end, thin, title, truth = NA, n.eig = 1,
+  fast.eig = TRUE)
 }
 \arguments{
 \item{lsMCMC}{A list of MCMC simulation results. \code{lsMCMC>=2} is required for the Rhat statistic
@@ -19,6 +20,9 @@ calculation.}
 \item{title}{The title of each figure.}
 
 \item{n.eig}{Number of eigen values the diagnosis will consider. Default is 1.}
+
+\item{fast.eig}{Whether to use fast eigen decomposition algorithm. Default is TRUE and \code{eig_sym} from
+\code{rARPACK} package will be used.}
 
 \item{If}{provided, a list contains the simulation truth for the dataset. 
 Must include two fields \code{Y}, the latent biological sample factors, and
