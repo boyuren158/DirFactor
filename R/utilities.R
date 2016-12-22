@@ -8,6 +8,9 @@ mt.trace = function( A ){
   sum(diag(A))
 }
 
+#' Calculate RV coefficients between two correlation matrices
+#' @param A, B two correlation matrices.
+#' @export
 rv.coef = function( A, B ){
   mt.trace(A%*%B)/sqrt(mt.trace(A%*%A)*mt.trace(B%*%B))
 }
@@ -223,8 +226,8 @@ SimDirFactorBlock = function( vcounts, n, p, m, hyper, K = 1, a = 2 ){
     factor.indx.group = split( 1:m, cut( 1:m, breaks = K ) )
     pop.indx.group = split( 1:n, cut( 1:n, breaks = K ) ) 
   }else{
-    factor.indx.group = 1:m
-    pop.indx.group = 1:n
+    factor.indx.group = list( 1:m )
+    pop.indx.group = list( 1:n )
   }
   Y = matrix( 0, nrow = m, ncol = n )
   
