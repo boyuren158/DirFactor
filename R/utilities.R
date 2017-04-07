@@ -147,7 +147,7 @@ ConvDiagnosis = function( lsMCMC, start, end, thin, title, truth = NA, n.eig = 1
 #' of two biological samples being clustered together. The rows and columns 
 #' are sorted by labels of biological samples.
 #' @export
-PlotClustering = function( all.dist, labels ){
+PlotClustering = function( all.dist, labels = NA ){
   #get posterior clustering probability
   res.cluster = lapply( all.dist, function(x){
     x = as.matrix(x)
@@ -159,29 +159,38 @@ PlotClustering = function( all.dist, labels ){
   res.cluster.mean = apply( res.cluster.mt, 1:2, mean )
   
   #plot the clustering results
-  res.mt.order = res.cluster.mean[order( labels ),order( labels )]
+  if( all(!is.na(labels)) ){
+    res.mt.order = res.cluster.mean[order( labels ),order( labels )]
+  }
+  else{
+    res.mt.order = res.cluster.mean
+  }
   plot.res = reshape2::melt( res.mt.order )
-  axis.labels = levels( labels )
-  axis.pos = cumsum( table( labels ) ) + 0.5
-  axis.text.pos = as.vector( axis.pos - table( labels )/2 )
-  x.delim = data.frame( x = axis.pos, xend = axis.pos, yend = rep( 0.5, length(axis.pos) ), y = rep( 0, length(axis.pos) ) )
-  y.delim = data.frame( y = axis.pos, yend = axis.pos, xend = rep( 0.5, length(axis.pos) ), x = rep( 0, length(axis.pos) ) )
   
-  ggplot() + geom_tile( data = plot.res, aes( x=Var1, y=Var2, fill = value ), color = "black" ) + 
-    scale_fill_gradient( low = "white", high = "red" ) + guides(fill=guide_legend(title="Posterior\nprobability")) +
-    annotate( geom="text", x = axis.text.pos, y = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
-    annotate( geom="text", y = axis.text.pos, x = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
-    theme_bw() + coord_fixed() + 
-    theme( axis.text = element_blank( ),
-           axis.title = element_blank(),
-           axis.ticks = element_blank(),
-           panel.border = element_blank(),
-           panel.grid.major = element_blank(),
-           panel.grid.minor = element_blank(),
-           legend.title = element_text(size = 18,face = "bold"),
-           legend.text = element_text(size = 15) ) + 
-    geom_segment( data = x.delim, aes(x = x, xend = xend, y = y, yend = yend ) ) + 
-    geom_segment( data = y.delim, aes(x = x, xend = xend, y = y, yend = yend ) )
+  plt.out = ggplot() + geom_tile( data = plot.res, aes( x=Var1, y=Var2, fill = value ), color = "black" ) + 
+    scale_fill_gradient( low = "white", high = "red" ) + guides(fill=guide_legend(title="Posterior\nprobability")) + theme_bw()
+  
+  if( all(!is.na(labels)) ){
+    axis.labels = levels( labels )
+    axis.pos = cumsum( table( labels ) ) + 0.5
+    axis.text.pos = as.vector( axis.pos - table( labels )/2 )
+    x.delim = data.frame( x = axis.pos, xend = axis.pos, yend = rep( 0.5, length(axis.pos) ), y = rep( 0, length(axis.pos) ) )
+    y.delim = data.frame( y = axis.pos, yend = axis.pos, xend = rep( 0.5, length(axis.pos) ), x = rep( 0, length(axis.pos) ) )
+    plt.out = plt.out + annotate( geom="text", x = axis.text.pos, y = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
+      annotate( geom="text", y = axis.text.pos, x = 0, label = axis.labels, size = 6, angle = 30, hjust = 1 ) + 
+      theme_bw() + coord_fixed() + 
+      theme( axis.text = element_blank( ),
+             axis.title = element_blank(),
+             axis.ticks = element_blank(),
+             panel.border = element_blank(),
+             panel.grid.major = element_blank(),
+             panel.grid.minor = element_blank(),
+             legend.title = element_text(size = 18,face = "bold"),
+             legend.text = element_text(size = 15) ) + 
+      geom_segment( data = x.delim, aes(x = x, xend = xend, y = y, yend = yend ) ) + 
+      geom_segment( data = y.delim, aes(x = x, xend = xend, y = y, yend = yend ) )
+  }
+  plt.out
 }
 
 
