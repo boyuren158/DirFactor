@@ -35,6 +35,7 @@ gg.color.hue <- function(n) {
 #' 
 #' @param all.cov Posterior samples of normalized Gram matrix/distance matrix between biological samples.
 #' @param n.dim Total number of axes visualized. Default is 2.
+#' @param levels.min Only show the minimum level in the contours. Default is FALSE.
 #' @param labels Labels associated with each biological samples. Default is NA. If not NA, labels will be
 #' annote onto the figure.
 #' @param types Types of each biological samples. Default is NA. If not NA, the contour corresponds to each
@@ -44,7 +45,7 @@ gg.color.hue <- function(n) {
 #' @note The STATIS method is implemented by \code{DistatisR} (Abdi et. al. (2005)).
 #' @return A list contains all pairwise ordination plots between the first \code{n.dim} axes.
 #' @export
-PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
+PlotStatis = function( all.cov, n.dim = 2, levels.min = FALSE, labels = NA, types = NA, dist = F, ... ){
   all.cov.array = array( unlist( all.cov ), dim = c(dim(all.cov[[1]]), length(all.cov)) )
   all.statis.res = DistatisR::distatis( all.cov.array, Distance = dist, nfact2keep = n.dim )
   compromise.ev = eigen(all.statis.res$res4Splus$Splus)$values
@@ -57,23 +58,33 @@ PlotStatis = function( all.cov, n.dim = 2, labels = NA, types = NA, dist = F ){
     axis.j = axis.idxs[2]
     plot.data = data.frame( x = compromise.coord[,axis.i], y = compromise.coord[,axis.j], 
                             group = rep( 1:nrow(all.cov[[1]]), n.rep) )
-    contr = ggplot() + geom_density2d (data = plot.data, aes( x=x, y=y, group = group) ) +
-      theme_bw()
     
     if(!any(is.na(types))){
       types = as.factor(types)
       types.color = gg.color.hue( length(levels(types) ) )
       plot.data$types = rep(types, n.rep)
-      contr = contr + geom_density2d(data = plot.data, aes( x=x, y=y, group = group, color = types)) +
-        scale_color_manual( values = types.color )
+      contr = ggplot() + geom_density2d(data = plot.data, aes( x=x, y=y, group = group, color = types)) + 
+        scale_color_manual( values = types.color ) + theme_bw()
     }
+    else{
+      contr = ggplot() + geom_density2d (data = plot.data, aes( x=x, y=y, group = group) ) +
+        theme_bw()
+    }
+    if(levels.min){
+      contr.data = ggplot_build(contr)$data[[1]]
+      contr.min = contr.data[grep("-001", contr.data$group, fixed = T),]
+      contr = ggplot(NULL) + geom_path( data = contr.min, aes(x=x,y=y,group=group,color=colour), ... ) + 
+        scale_color_manual( values = sort(unique(contr.min$colour)), labels = unique(types)[order(unique(contr.min$colour))] ) + 
+        theme_bw()
+    }
+    
     if(!any(is.na(labels))){
       x.annote = tapply( plot.data$x, plot.data$group, mean )
       y.annote = tapply( plot.data$y, plot.data$group, mean )
       annote.data = data.frame( x=x.annote, y=y.annote, 
                                 labels = as.character( labels ) )
       contr = contr + geom_point( data = annote.data, aes( x=x, y=y )  ) +
-        with(annote.data, annotate(geom="text", x = x+0.01 , y = y, label = labels, size = 8) )
+        with(annote.data, annotate(geom="text", x = x+0.01 , y = y, label = labels, size = 6) )
     }
     contr + xlab(sprintf("Compromise axis %d (%.2f%%)", axis.i, compromise.prop[axis.i]*100)) +
       ylab(sprintf("Compromise axis %d (%.2f%%)", axis.j, compromise.prop[axis.j]*100))
